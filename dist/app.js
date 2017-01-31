@@ -1,9 +1,9 @@
 "use strict";
-const https_1 = require('https');
+const https_1 = require("https");
 const parser_1 = require("./parser");
-const util_1 = require('./util');
-const util_2 = require('./util');
-const fs_1 = require('fs');
+const util_1 = require("./util");
+const util_2 = require("./util");
+const fs_1 = require("fs");
 function parseDefinitions(config) {
     if (!config) {
         config = {};
@@ -16,6 +16,17 @@ function parseDefinitions(config) {
             "sap.ui.unified"
         ];
     }
+    if (!config.excludedNamespaces) {
+        config.excludedNamespaces = ["sap.ui.test"];
+    }
+    if (!config.excludedClassMethods) {
+        config.excludedClassMethods = [
+            { className: "sap.ui.core.mvc.XMLView", methodName: "registerPreprocessor" },
+            { className: "sap.ui.core.UIArea", methodName: "getBindingContext" },
+            { className: "sap.ui.model.odata.v2.ODataTreeBinding", methodName: "sort" },
+            { className: "sap.ui.model.analytics.AnalyticalBinding", methodName: "sort" }
+        ];
+    }
     if (!config.outFilePath) {
         config.outFilePath = pathJoin(["output", "ui5"], "\\") + ".d.ts";
     }
@@ -26,6 +37,7 @@ function parseDefinitions(config) {
         config.typeConfigFile = "parse-configurations/TypeConfig.json";
     }
     util_1.TypeUtil._config = JSON.parse(fs_1.readFileSync(config.typeConfigFile, 'utf-8'));
+    util_1.TypeUtil._excludedClassMethods = config.excludedClassMethods;
     parser_1.MethodParser._exceptions = JSON.parse(fs_1.readFileSync(config.methodExceptionsFile, 'utf-8'));
     let libs = [];
     function pathJoin(parts, sep) {
@@ -50,10 +62,30 @@ function parseDefinitions(config) {
                     let allSymbols = [];
                     console.log("all downloads complete, starting compilation...");
                     for (let lib of libs) {
-                        namespaceNames = namespaceNames.concat(lib.symbols.filter((s) => {
+                        let filteredSymbols;
+                        // skip classes/namespaces that are under test
+                        if (config.excludedNamespaces && config.excludedNamespaces.length) {
+                            let toSkipSymbols = [];
+                            // let filteredSymbols = config.excludedNamespaces.filter( (ns) => { return lib.symbols.filter((sym) => { return sym.name.startsWith(ns); }).length; } ).length
+                            filteredSymbols = lib.symbols.filter((sym) => {
+                                for (let ns = 0; ns < config.excludedNamespaces.length; ns++) {
+                                    if (sym.name.startsWith(config.excludedNamespaces[ns])) {
+                                        toSkipSymbols.push(sym);
+                                        return false;
+                                    }
+                                }
+                                return true;
+                            });
+                            if (toSkipSymbols && toSkipSymbols.length)
+                                console.log("-- skipping: " + toSkipSymbols.map((sym) => sym.name).join(", "));
+                        }
+                        else {
+                            filteredSymbols = lib.symbols;
+                        }
+                        namespaceNames = namespaceNames.concat(filteredSymbols.filter((s) => {
                             return s.kind === "namespace";
                         }).map((symbol) => symbol.name));
-                        allSymbols = allSymbols.concat(lib.symbols);
+                        allSymbols = allSymbols.concat(filteredSymbols);
                     }
                     console.log("Using namespaces: " + namespaceNames);
                     util_1.TypeUtil.namespaces = namespaceNames;

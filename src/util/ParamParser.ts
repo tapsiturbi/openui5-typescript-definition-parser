@@ -11,8 +11,9 @@ export class ParamParser {
 
             return parameters.map((param, i) => {
                 let paramString = "";
-                paramString += param.name
-                if (param.optional && i > lastMandatoryParamIdx) paramString += "?"
+                paramString += param.name ? param.name : "param";
+                if (param.optional && i > lastMandatoryParamIdx)
+                    paramString += "?"
                 paramString += ": " + TypeUtil.sapUiTypeToTSType(param.type)
                 return paramString;
             }).reduce((a, b) => {

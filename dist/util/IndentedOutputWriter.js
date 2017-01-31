@@ -1,7 +1,7 @@
 "use strict";
-const fs_1 = require('fs');
-const fs_2 = require('fs');
-const path_1 = require('path');
+const fs_1 = require("fs");
+const fs_2 = require("fs");
+const path_1 = require("path");
 class IndentedOutputWriter {
     constructor(outputFilePath) {
         this.outputFilePath = outputFilePath;
@@ -31,7 +31,7 @@ class IndentedOutputWriter {
     writeChunked(lineModifier, line) {
         if (line) {
             if (line.length > 100) {
-                let regexp = new RegExp("(.{0,100})\\s(.*)");
+                let regexp = new RegExp("(.{0,100})\\s?(.*)");
                 let result = regexp.exec(line);
                 if (!result) {
                     console.log("Cannot write line " + line);

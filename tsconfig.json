@@ -11,11 +11,12 @@
   },
   "filesGlob": [
     "./typings/**/*.d.ts",
-    "./src/**/*.d.ts"
+    "./src/**/*.d.ts",
+    "./node_modules/@types/**/*.d.ts"
   ],
   "exclude": [
-    "node_modules",
-    "typings/main.d.ts",
+    // "node_modules",
+    // "typings/main.d.ts",
     "dist",
     "output"
   ],

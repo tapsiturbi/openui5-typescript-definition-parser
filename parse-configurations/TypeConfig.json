@@ -35,7 +35,9 @@
         "int": "number",
         "int[]": "number",
         "integer": "number",
+        "Integer": "number",
         "float": "number",
+        "float[]": "number[]",
         "function": "any",
         "null": "any",
         "undefined": "any",
@@ -52,6 +54,7 @@
         "jQuery.promise": "JQueryPromise<any>",
         "sting": "string",
         "sting[]": "string[]",
+        "array.<array.<string>>": "string[][]",
         "element": "sap.ui.core.Element",
         "Element": "sap.ui.core.Element",
         "sap.ui.core.Model": "sap.ui.model.Model",
@@ -65,11 +68,14 @@
         "date": "any",
         "sap.ui.core.Integer": "number",
         "sap.ui.core.String": "string",
+        "sap.ui.core.ID": "string",
+        "sap.ui.core.ID[]": "string[]",
         "sap.ui.core.Controller": "sap.ui.core.mvc.Controller",
         "sap.ui.core.routing.Router": "sap.m.routing.Router",
         "sap.ui.model.odata.OdataListBinding": "sap.ui.model.odata.ODataListBinding",
         "sap.ui.base.ManageObject": "sap.ui.base.ManagedObject",
         "sap.ui.base.ManagedObjectMetadata": "sap.ui.base.Metadata",
+        "regexp": "RegExp",
         "*": "any"
     }
 }

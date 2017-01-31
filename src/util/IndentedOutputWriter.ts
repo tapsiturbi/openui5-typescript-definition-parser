@@ -41,7 +41,7 @@ export class IndentedOutputWriter {
     public writeChunked(lineModifier: (string) => string, line: string) {
         if (line) {
             if (line.length > 100) {
-                let regexp = new RegExp("(.{0,100})\\s(.*)");
+                let regexp = new RegExp("(.{0,100})\\s?(.*)");
                 let result = regexp.exec(line);
                 if (!result) {
                     console.log("Cannot write line " + line)

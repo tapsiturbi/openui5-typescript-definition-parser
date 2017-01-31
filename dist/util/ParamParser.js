@@ -1,5 +1,5 @@
 "use strict";
-const TypeUtil_1 = require('./TypeUtil');
+const TypeUtil_1 = require("./TypeUtil");
 class ParamParser {
     static parseParams(parameters) {
         if (parameters) {
@@ -11,7 +11,7 @@ class ParamParser {
             }
             return parameters.map((param, i) => {
                 let paramString = "";
-                paramString += param.name;
+                paramString += param.name ? param.name : "param";
                 if (param.optional && i > lastMandatoryParamIdx)
                     paramString += "?";
                 paramString += ": " + TypeUtil_1.TypeUtil.sapUiTypeToTSType(param.type);

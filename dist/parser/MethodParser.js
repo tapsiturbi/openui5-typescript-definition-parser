@@ -1,5 +1,5 @@
 "use strict";
-const util_1 = require('../util');
+const util_1 = require("../util");
 class MethodParser {
     constructor(writer, method, symbolContext) {
         this.writer = writer;

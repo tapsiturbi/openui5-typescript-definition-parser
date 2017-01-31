@@ -10,7 +10,7 @@ export class EnumParser {
         this.writer.openBlockComment()
         this.writer.writeTsDocComment(this.enumSymbol.description)
         this.writer.closeBlockComment();
-        this.writer.writeLine("enum " + this.enumSymbol.basename + " {")
+        this.writer.writeLine("enum " + this.enumSymbol.basename.replace(/^\w+\./, "") + " {")
         this.writer.increaseIndent()
 
         if (this.enumSymbol.properties) {

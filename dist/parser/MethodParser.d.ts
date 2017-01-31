@@ -12,5 +12,5 @@ export declare class MethodParser {
     protected symbolContext: ts_gen.api.Symbol;
     static _exceptions: MethodException[];
     constructor(writer: IndentedOutputWriter, method: ts_gen.api.Method, symbolContext: ts_gen.api.Symbol);
-    generate(): string;
+    generate(): "" | "any";
 }

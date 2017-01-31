@@ -22,5 +22,9 @@
     "url": "https://github.com/maylukas/sapui5-typescript-definition-generator/issues"
   },
   "homepage": "https://github.com/maylukas/sapui5-typescript-definition-generator#readme",
-  "dependencies": {}
+  "dependencies": {
+    "@types/node": "^7.0.4",
+    "fs": "0.0.1-security",
+    "https": "^1.0.0"
+  }
 }

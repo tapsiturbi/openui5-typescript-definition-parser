@@ -3,7 +3,7 @@ class TypeUtil {
     static sapUiTypeToTSType(type) {
         let parts;
         if (type.indexOf("|") > 0) {
-            parts = type.split("|");
+            return "any";
         }
         else {
             parts = [type];
@@ -23,9 +23,9 @@ class TypeUtil {
             if (this._config.ignoredTypes.indexOf(part.replace("[]", "")) > -1) {
                 return "any[]";
             }
-            if (isNamespace) {
-                return "typeof " + part;
-            }
+            // if (isNamespace) {
+            //     return "typeof " + part;
+            // }
             if (part.indexOf("jQuery") === 0) {
                 return "any";
             }
@@ -37,6 +37,9 @@ class TypeUtil {
             }
             if (matchingTypes.length === 1) {
                 return this._config.typeMapping[matchingTypes[0]];
+            }
+            if (isNamespace) {
+                return "typeof " + part;
             }
             return part;
         }).reduce((a, b) => {

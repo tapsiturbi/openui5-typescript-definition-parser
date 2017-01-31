@@ -2,15 +2,20 @@ export interface TypeConfig {
     ignoredTypes: string[];
     typeMapping: { [id: string]: string };
 }
+export interface ClassMethod {
+    className: string,
+    methodName: string
+}
 export class TypeUtil {
     public static namespaces: string[];
     public static _config: TypeConfig;
-
+    public static _excludedClassMethods: ClassMethod[];
 
     public static sapUiTypeToTSType(type: string) {
         let parts;
         if (type.indexOf("|") > 0) {
-            parts = type.split("|");
+            return "any";
+            // parts = type.split("|");
         } else {
             parts = [type];
         }
@@ -35,9 +40,9 @@ export class TypeUtil {
                 return "any[]";
             }
 
-            if (isNamespace) {
-                return "typeof " + part;
-            }
+            // if (isNamespace) {
+            //     return "typeof " + part;
+            // }
 
             if (part.indexOf("jQuery") === 0) {
                 return "any"
@@ -53,6 +58,10 @@ export class TypeUtil {
 
             if (matchingTypes.length === 1) {
                 return this._config.typeMapping[matchingTypes[0]];
+            }
+
+            if (isNamespace) {
+                return "typeof " + part;
             }
 
             return part;

@@ -1,6 +1,7 @@
-import {IndentedOutputWriter, ParamParser} from '../util';
+import {IndentedOutputWriter, ParamParser, TypeUtil} from '../util';
 import {PropertyParser} from "./PropertyParser";
 import {MethodParser} from "./MethodParser";
+import {InterfaceParser} from "./InterfaceParser";
 
 
 export class ClassParser {
@@ -20,6 +21,31 @@ export class ClassParser {
             nestedNamespaceName = nestedNamespaceName.substring(0, nestedNamespaceName.length - this.classSymbol.basename.length - 1)
             this.writer.writeLine("declare namespace " + nestedNamespaceName + "{")
             this.writer.increaseIndent();
+        }
+
+        // declare the mSettings interface to use for this class' constructor
+        let hasSettingsInterface = false;
+        if ( this.classSymbol.hasOwnProperty("ui5-metadata") && this.classSymbol.constructor && this.classSymbol.constructor.parameters ) {
+            let oUI5Meta = this.classSymbol["ui5-metadata"];
+            if ( oUI5Meta.properties && oUI5Meta.properties.length ) {
+                let oProps = oUI5Meta.properties;
+                for(let p = 0; p < oProps.length; p++) {
+                    oProps[p].visibility = "";
+                }
+
+                let oInterface = new InterfaceParser(this.writer, <ts_gen.api.Symbol> {
+                    kind: "interface",
+                    name: this.classSymbol.name + "_mSettings",
+                    basename: this.classSymbol.basename + "_mSettings",
+                    static: true,
+                    visibility: "public",
+                    description: "The UI5 metadata interface of the class " + this.classSymbol.name + ".",
+                    properties: oProps
+                }, this.namespacePrefix);
+                oInterface.generate();
+
+                hasSettingsInterface = true;
+            }
         }
 
         this.writer.openBlockComment();
@@ -67,7 +93,18 @@ export class ClassParser {
                 this.writer.closeBlockComment();
             }
 
-            this.writer.writeLine("constructor(" + ParamParser.parseParams(this.classSymbol.constructor.parameters) + ");");
+            if ( hasSettingsInterface ) {
+                // change the mSettings parameter type to the interface that we created
+                let mSettingsParam = this.classSymbol.constructor.parameters.filter((param) => { return param.name == "mSettings"; })[0];
+                if ( mSettingsParam )
+                    mSettingsParam.type = this.classSymbol.basename + "_mSettings";
+
+                this.writer.writeLine("constructor(" + ParamParser.parseParams(this.classSymbol.constructor.parameters) + ");");
+            } else {
+
+                this.writer.writeLine("constructor(" + ParamParser.parseParams(this.classSymbol.constructor.parameters) + ");");
+            }
+
         }
 
         this.writer.newLine();
@@ -76,8 +113,15 @@ export class ClassParser {
 
         if (this.classSymbol.methods) {
             for (let method of this.classSymbol.methods) {
-                let methodParser = new MethodParser(this.writer, method, this.classSymbol);
-                methodParser.generate();
+
+                // TypeUtil._excludedClassMethods
+                if ( TypeUtil._excludedClassMethods && TypeUtil._excludedClassMethods.filter((cm) => { return cm.className == this.classSymbol.name && cm.methodName == method.name; }).length ) {
+                    console.log("-- skipping class method: " + this.classSymbol.name + " -> " + method.name);
+                } else {
+                    let methodParser = new MethodParser(this.writer, method, this.classSymbol);
+                    methodParser.generate();
+                }
+
             }
         }
 

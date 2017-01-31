@@ -1,15 +1,18 @@
 declare function require(name: string);
 import {get} from 'https';
 import {NamespaceParser, ClassParser, LibraryParser, MethodParser} from "./parser"
-import {TypeUtil} from './util';
+import {TypeUtil, ClassMethod} from './util';
 import {IndentedOutputWriter} from './util';
 import {readFileSync} from 'fs';
+
 
 export interface ConfigDef {
     namespaces?: string[];
     outFilePath?: string;
     methodExceptionsFile?: string;
     typeConfigFile?: string;
+    excludedNamespaces?: string[],
+    excludedClassMethods?: ClassMethod[]
 }
 
 export function parseDefinitions(config: ConfigDef) {
@@ -24,6 +27,17 @@ export function parseDefinitions(config: ConfigDef) {
             "sap.ui.unified"
         ]
     }
+    if ( !config.excludedNamespaces ) {
+        config.excludedNamespaces = ["sap.ui.test"];
+    }
+    if ( !config.excludedClassMethods ) {
+        config.excludedClassMethods = [
+            { className: "sap.ui.core.mvc.XMLView", methodName: "registerPreprocessor" },
+            { className: "sap.ui.core.UIArea", methodName: "getBindingContext" },
+            { className: "sap.ui.model.odata.v2.ODataTreeBinding", methodName: "sort" },
+            { className: "sap.ui.model.analytics.AnalyticalBinding", methodName: "sort" }
+        ];
+    }
     if (!config.outFilePath) {
         config.outFilePath = pathJoin(["output", "ui5"], "\\") + ".d.ts";
     }
@@ -37,7 +51,8 @@ export function parseDefinitions(config: ConfigDef) {
     }
 
     TypeUtil._config = JSON.parse(readFileSync(config.typeConfigFile, 'utf-8'));
-    MethodParser._exceptions = JSON.parse(readFileSync(config.methodExceptionsFile, 'utf-8'))
+    TypeUtil._excludedClassMethods = config.excludedClassMethods;
+    MethodParser._exceptions = JSON.parse(readFileSync(config.methodExceptionsFile, 'utf-8'));
 
     let libs: ts_gen.api.RootObject[] = [];
     function pathJoin(parts: string[], sep?: string) {
@@ -69,10 +84,34 @@ export function parseDefinitions(config: ConfigDef) {
                     let allSymbols: ts_gen.api.Symbol[] = []
                     console.log("all downloads complete, starting compilation...")
                     for (let lib of libs) {
-                        namespaceNames = namespaceNames.concat(lib.symbols.filter((s) => {
+                        let filteredSymbols: ts_gen.api.Symbol[];
+                        // skip classes/namespaces that are under test
+                        if ( config.excludedNamespaces && config.excludedNamespaces.length ) {
+                            let toSkipSymbols: ts_gen.api.Symbol[] = [];
+
+                            // let filteredSymbols = config.excludedNamespaces.filter( (ns) => { return lib.symbols.filter((sym) => { return sym.name.startsWith(ns); }).length; } ).length
+                            filteredSymbols = lib.symbols.filter((sym) => {
+                                for(let ns = 0; ns < config.excludedNamespaces.length; ns++) {
+                                    if ( sym.name.startsWith(config.excludedNamespaces[ns]) ) {
+                                        toSkipSymbols.push(sym);
+                                        return false;
+                                    }
+                                }
+                                return true;
+                            });
+                            if ( toSkipSymbols && toSkipSymbols.length )
+                                console.log("-- skipping: " + toSkipSymbols.map((sym) => sym.name).join(", "));
+
+                        } else {
+                            filteredSymbols = lib.symbols;
+                        }
+
+                        namespaceNames = namespaceNames.concat(filteredSymbols.filter((s) => {
                             return s.kind === "namespace";
                         }).map((symbol) => symbol.name));
-                        allSymbols = allSymbols.concat(lib.symbols)
+
+                        allSymbols = allSymbols.concat(filteredSymbols);
+
                     }
                     console.log("Using namespaces: " + namespaceNames)
                     TypeUtil.namespaces = namespaceNames;
