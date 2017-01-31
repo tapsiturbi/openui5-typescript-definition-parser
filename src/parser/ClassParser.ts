@@ -126,8 +126,12 @@ export class ClassParser {
             if ( hasSettingsInterface ) {
                 // change the mSettings parameter type to the interface that we created
                 let mSettingsParam = this.classSymbol.constructor.parameters.filter((param) => { return param.name == "mSettings"; })[0];
-                if ( mSettingsParam )
+                // Levy 2017-01-31:
+                // - Constructor for sap.m.DraftIndicator does not have an mSettings parameter
+                if ( mSettingsParam ) {
                     mSettingsParam.type = this.classSymbol.basename + "_mSettings";
+                    this.writer.writeLine("constructor(" + ParamParser.parseParams([mSettingsParam]) + ");");
+                }
 
                 this.writer.writeLine("constructor(" + ParamParser.parseParams(this.classSymbol.constructor.parameters) + ");");
             } else {
