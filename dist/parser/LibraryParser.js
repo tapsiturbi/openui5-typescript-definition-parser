@@ -210,6 +210,7 @@ interface JQueryStatic {
                 for (let ns of rootNamespaces) {
                     this.buildNamespaceParser(ns, "").generate();
                 }
+                console.log("* DONE!");
             });
         });
         console.log("Unmatched symbols: " + this.symbols.map((e) => e.name).reduce((a, b) => a + ", " + b));

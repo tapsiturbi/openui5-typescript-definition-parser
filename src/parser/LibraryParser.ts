@@ -218,6 +218,8 @@ interface JQueryStatic {
                 for (let ns of rootNamespaces) {
                     this.buildNamespaceParser(ns, "").generate();
                 }
+
+                console.log("* DONE!");
             });
         });
 

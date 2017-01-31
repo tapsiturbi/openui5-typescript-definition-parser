@@ -26,9 +26,33 @@ class ClassParser {
         if (this.classSymbol.hasOwnProperty("ui5-metadata") && this.classSymbol.constructor && this.classSymbol.constructor.parameters) {
             let oUI5Meta = this.classSymbol["ui5-metadata"];
             if (oUI5Meta.properties && oUI5Meta.properties.length) {
-                let oProps = oUI5Meta.properties;
+                // build properties, events, associations and aggregations
+                let oProps = JSON.parse(JSON.stringify(oUI5Meta.properties));
                 for (let p = 0; p < oProps.length; p++) {
                     oProps[p].visibility = "";
+                }
+                if (oUI5Meta.aggregations) {
+                    for (let a = 0; a < oUI5Meta.aggregations.length; a++) {
+                        let oAgg = oUI5Meta.aggregations[a];
+                        if (oAgg.visibility && oAgg.visibility == "public") {
+                            oAgg = JSON.parse(JSON.stringify(oAgg));
+                            oAgg.visibility = "";
+                            if (oAgg.cardinality && oAgg.cardinality == "0..n")
+                                oAgg.type = oAgg.type + "[]";
+                            oProps.push(oAgg);
+                        }
+                    }
+                }
+                if (oUI5Meta.events) {
+                    for (let e = 0; e < oUI5Meta.events.length; e++) {
+                        let oEvent = oUI5Meta.events[e];
+                        if (oEvent.visibility && oEvent.visibility == "public") {
+                            oEvent = JSON.parse(JSON.stringify(oEvent));
+                            oEvent.visibility = "";
+                            oEvent.type = "Event";
+                            oProps.push(oEvent);
+                        }
+                    }
                 }
                 let oInterface = new InterfaceParser_1.InterfaceParser(this.writer, {
                     kind: "interface",

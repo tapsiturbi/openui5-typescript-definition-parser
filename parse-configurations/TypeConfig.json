@@ -76,6 +76,7 @@
         "sap.ui.base.ManageObject": "sap.ui.base.ManagedObject",
         "sap.ui.base.ManagedObjectMetadata": "sap.ui.base.Metadata",
         "regexp": "RegExp",
+        "Event": "(oEvent: JQueryEventObject, oParams: any) => void | [(oEvent: JQueryEventObject, oParams: any) => void, any]",
         "*": "any"
     }
 }
